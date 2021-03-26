@@ -31,7 +31,7 @@ def getSignedListCsv(url):
 	try:
 		# Make the request to the Raid-Helper CSV file, and prepare it for use
 		resp = requests.get(url)
-		resp.raise_for_status()
+		#resp.raise_for_status()
 		respLines = resp.content.decode("utf8").split("\n")
 		
 		# Create Array of signed Players
@@ -40,6 +40,8 @@ def getSignedListCsv(url):
 		for i in range(4, len(respLines)-1):
 			Player = respLines[i].split(",")[2].lower()
 			signedPlayers.append(Player)
+		
+		return signedPlayers
 				
 	except requests.exceptions.HTTPError as er:
 		print(f'{er}')
@@ -106,6 +108,7 @@ def get_members(context):
 @commands.has_role("Officer") # Have to hardcode this sadly :(
 async def signpolice(context,url):
 	signedPlayers = getSignedListCsv(url)
+	print(f'signedPlayers: {signedPlayers}')
 	if (signedPlayers == False ):
 		print('An error has occured, quitting!')
 		await context.message.delete()
