@@ -10,7 +10,8 @@ from discord.ext import commands
 load_dotenv()
 
  # Gets token from .env
-TOKEN = os.getenv('TOKEN')
+TOKEN = os.getenv('TESTTOKEN')
+#TOKEN = os.getenv('TOKEN')
 
  # This requires some set up in the Discord Developer Portal
  # Without the members intent the bot can't see other users
@@ -39,6 +40,8 @@ def getSignedListCsv(url):
 	try:
 		# Make the request to the Raid-Helper CSV file, and prepare it for use
 		resp = requests.get(url)
+		
+		# throw an http error if something went wrong
 		resp.raise_for_status()
 		respLines = resp.content.decode("utf8").split("\n")
 		
@@ -82,14 +85,19 @@ async def getSignedListReactions(context):
 	if ref != None:
 		msg = await context.fetch_message(ref)
 		repliers = []
+		# Loop through all the reaction emotes
 		for x in range(len(msg.reactions)):
+			# Get all the users who used the emote
 			user_list = [u for u in await msg.reactions[x].users().flatten() if u != bot.user]
+			# Loop through all these users
 			for y in range(len(user_list)):
-				if not user_list[y].name.lower() in repliers:
+				if not user_list[y].name.lower() in repliers:  # no duplicates please
 					print(f'{user_list[y].name.lower()}')
-					# Making these strings again so my old code doesn't break
+					# I'm making this a list of strings so I don't need to rewrite the compareAndSnitch() function
 					# This way I can keep in the CSV option as a backup, in case the reaction checking breaks
+					# The CSV option is more accurate, but also a pain to use
 					repliers.append(user_list[y].name.lower())
+		# Debugging
 		print(f'{repliers}')
 		
 		return repliers
@@ -117,7 +125,7 @@ async def on_ready():
 # Get all the players with officer OR Raider roles and throw them in a list
 def get_members(context):
 	raiders = [] # List of DiscordUser objects, NOT strings
-	roles = []
+	roles = [] # List of DiscoredRoles
 	
 	# Get the actual role objects, currently we only have the names as strings
 	for y in range(0,len(raidingRoles)):
@@ -135,7 +143,7 @@ def get_members(context):
 				print(f"{user.name} has the role {raidrole.name}")
 				raiders.append(user)
 				
-				# No duplicates please.
+				# No duplicates please
 				break 
 	return raiders
 
@@ -147,17 +155,52 @@ async def compareAndSnitch(context, signedPlayers, raiders, prefix, postfix):
 	print(signedPlayers)
 	print("\n\n\nExisting Raiders who are slacking:\n")
 	
-	
 	# Check for every raider
 	for raider in raiders:
-		if not raider.name.lower() in signedPlayers:
-			PublicShameTargets += f'{raider.mention} '
-			print(f'{raider.name} is a slacker')
+		# Bots are superior to humans and thus can't be slackers
+		if not raider.bot:
+			if not raider.name.lower() in signedPlayers:
+				PublicShameTargets += f'{raider.mention} '
+				print(f'{raider.name} is a slacker')
 	await context.send(f'{prefix}{PublicShameTargets}{postfix}')
 	
 	# Clean up
 	await context.message.delete()
 
+	
+@bot.command(name='signpolice',help='Reply this command to a Raid-Helper Calender call out slackers\nFor custom shaming text type:\n!signpolice "[text before list]" "[text after list]"')
+@commands.has_role("Officer") # Have to hardcode this sadly :(
+async def signpolice(context, prefix=Prefix, postfix=Postfix):
+	signedPlayers = await getSignedListReactions(context)
+	if (signedPlayers == False or signedPlayers == None):
+		print('An error has occured, quitting!')
+		await context.message.delete()
+		return
+	raiders = get_members(context)
+	
+	await compareAndSnitch(context, signedPlayers, raiders, prefix, postfix)
+	
+# Handle Bachussus:
+# I mean he's ganna try if he ever figures out how
+@signpolice.error
+async def signpolice_error(context, error):
+	if isinstance(error, commands.MissingRole):
+		await context.send(f'Only Officers can use this command\nWe\'re called Police Officers not Police Raiders :clown:')
+	else:
+		# A catch-all for when the other error handling has failed
+		print(f'And error has occured: {error}')
+		
+	# Clean up
+	await context.message.delete()
+
+# Testing whether the bot has access to the guildlist		
+@bot.command(name='testMemberAccess',help='Tests if the bot has the Members Intent special privilege')		
+async def testMemberAccess(context):
+	for member in context.guild.members: 
+		print(f'{member.name}')
+	
+	# Clean up
+	await context.message.delete()
 
 
 # The old way of doing it
@@ -185,43 +228,7 @@ async def signpolice_error(context, error):
 		
 	# Clean up
 	await context.message.delete()
-
 	
-@bot.command(name='signpolice')
-@commands.has_role("Officer") # Have to hardcode this sadly :(
-async def signpolice(context, prefix=Prefix, postfix=Postfix):
-	signedPlayers = await getSignedListReactions(context)
-	if (signedPlayers == False ):
-		print('An error has occured, quitting!')
-		await context.message.delete()
-		return
-	raiders = get_members(context)
-	
-	await compareAndSnitch(context, signedPlayers, raiders, prefix, postfix)
-	
-# Handle Bachussus:
-# I mean he's ganna try if he ever figures out how
-@signpolice.error
-async def signpolice_error(context, error):
-	if isinstance(error, commands.MissingRole):
-		await context.send(f'Only Officers can use this command\nWe\'re called Police Officers not Police Raiders :clown:')
-	else:
-		# A catch-all for when the other error handling has failed
-		print(f'And error has occured: {error}')
-		
-	# Clean up
-	await context.message.delete()
-
-# Testing whether the bot has access to the guildlist		
-@bot.command(name='testMemberAccess')		
-async def testMemberAccess(context):
-	for member in context.guild.members: 
-		print(f'{member.name}')
-	
-	# Clean up
-	await context.message.delete()
-
-
 bot.run(TOKEN) 
 
 
