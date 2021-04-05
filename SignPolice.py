@@ -10,8 +10,8 @@ from discord.ext import commands
 load_dotenv()
 
  # Gets token from .env
-TOKEN = os.getenv('TESTTOKEN')
-#TOKEN = os.getenv('TOKEN')
+#TOKEN = os.getenv('TESTTOKEN')
+TOKEN = os.getenv('TOKEN')
 
  # This requires some set up in the Discord Developer Portal
  # Without the members intent the bot can't see other users
@@ -67,16 +67,16 @@ def getSignedListCsv(url):
 
 # Called when the bot spots a message (private or in a channel)
 # Mainly here for debug purposes
-@bot.event
-async def on_message(message):
-	# without this line other commands would fail to work
-	await bot.process_commands(message)
-	#print(
-	#	f'{message.content}\n{message.reference}'
-	#)
-	#if message.reference != None:
-	#	refMessage = await
-	#	print(f'{message.reference.content}')
+#@bot.event
+#async def on_message(message):
+#	# without this line other commands would fail to work
+#	print(
+#		f'{message.content}\n{message.reference}'
+#	)
+#	if message.reference != None:
+#		#refMessage = await
+#		print(f'Reference: {message.reference.content}')
+#	await bot.process_commands(message)
 
 #@bot.command(name='testReply')
 async def getSignedListReactions(context):
