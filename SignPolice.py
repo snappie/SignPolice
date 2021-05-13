@@ -68,7 +68,7 @@ def getSignedListCsv(url):
 # Called when the bot spots a message (private or in a channel)
 # Mainly here for debug purposes
 #@bot.event
-#async def on_message(message):
+#async def on_message(message): #Having this function enabled can cause the bot to become unresponsive to commands on large servers
 #	# without this line other commands would fail to work
 #	print(
 #		f'{message.content}\n{message.reference}'
