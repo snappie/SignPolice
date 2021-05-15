@@ -21,7 +21,7 @@ intents.members = True
 Prefix = 'Public shaming of slackers by the :police_car: signpolice :police_car:\nList of slackers:'
 Postfix = ''
 
-raidingRoles = ["Officer", "Raider"]
+raidingRoles = ["Officer", "Core"]
 
 bot = commands.Bot(command_prefix='!', intents = intents)
 
